@@ -24,17 +24,15 @@ const isLightColor = (hex) => relLuma(hex) > 0.5;
 // - No AI options :)
 
 const BASE = process.env.PUBLIC_URL || "";
-
 const DEFAULT_TEMPLATES = [
-  // Starter templates (first item replaced per your request)
-  "${BASE}/images/1.png",
-  "${BASE}/images/2.png",
-  "${BASE}/images/3.png",
-  "${BASE}/images/4.png",
-  "${BASE}/images/5.png",
-  "${BASE}/images/6.png",
-  "${BASE}/images/7.png",
-  "${BASE}/images/8.png",
+  `${BASE}/images/1.png`,
+  `${BASE}/images/2.png`,
+  `${BASE}/images/3.png`,
+  `${BASE}/images/4.png`,
+  `${BASE}/images/5.png`,
+  `${BASE}/images/6.png`,
+  `${BASE}/images/7.png`,
+  `${BASE}/images/8.png`,
 ];
 
 const FONTS = [
