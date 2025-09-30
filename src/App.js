@@ -455,6 +455,30 @@ const generateAndLink = () => {
   };
 
   const aspect = img ? `${img.naturalWidth} / ${img.naturalHeight}` : '4 / 3';
+  // Fallback למכשירים שלא תומכים ב-aspect-ratio: קובע גובה לפי רוחב המכל
+useEffect(() => {
+  const el = containerRef.current;
+  if (!el) return;
+
+  const supportsAspect = typeof CSS !== 'undefined' && CSS.supports?.('aspect-ratio: 1 / 1');
+
+  const setHeight = () => {
+    if (supportsAspect) {
+      // בדפדפנים חדשים לא צריך Fallback — ננקה אם הוגדר בעבר
+      el.style.height = '';
+      return;
+    }
+    const ratio = img ? (img.naturalHeight / img.naturalWidth) : (3 / 4);
+    const w = el.clientWidth || el.offsetWidth || 0;
+    const h = Math.min(Math.round(w * ratio), Math.round(window.innerHeight * 0.72));
+    el.style.height = `${h}px`;
+  };
+
+  setHeight();
+  window.addEventListener('resize', setHeight);
+  return () => window.removeEventListener('resize', setHeight);
+}, [img]);
+
 
 
 
