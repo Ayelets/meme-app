@@ -23,6 +23,8 @@ const isLightColor = (hex) => relLuma(hex) > 0.5;
 // - Download as PNG with proper high-DPI scaling
 // - No AI options :)
 
+const BASE = process.env.PUBLIC_URL || "";
+
 const DEFAULT_TEMPLATES = [
   // Starter templates (first item replaced per your request)
   "${BASE}/images/1.png",
