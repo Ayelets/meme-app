@@ -470,7 +470,7 @@ useEffect(() => {
     }
     const ratio = img ? (img.naturalHeight / img.naturalWidth) : (3 / 4);
     const w = el.clientWidth || el.offsetWidth || 0;
-    const h = Math.min(Math.round(w * ratio * 1.30), Math.round(window.innerHeight * 0.90));
+    const h = Math.min(Math.round(w * ratio * 1.30), Math.round(window.innerHeight * 0.8));
     el.style.height = `${h}px`;
   };
 
@@ -483,7 +483,7 @@ useEffect(() => {
 
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-zinc-50 text-zinc-900">
+    <div className="min-h-screen flex flex-col overflow-y-auto bg-zinc-50 text-zinc-900">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="w-full px-4 py-3 flex items-center gap-3">
           <span className="text-2xl font-bold">Meme Eshelerator</span>
@@ -494,7 +494,11 @@ useEffect(() => {
         </div>
       </header>
 
-      <main className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-hidden">
+      <main
+        className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-y-auto lg:overflow-hidden"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+
         {/* Editor */}
         <section className="bg-white rounded-2xl shadow p-4 flex flex-col min-h-0">
           {/* Image roller */}
@@ -529,8 +533,8 @@ useEffect(() => {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
-            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-none"
-            style={{ aspectRatio: aspect, maxHeight: '95vh', minHeight: '75vh' }}
+            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y"
+            style={{ aspectRatio: aspect, maxHeight: '80vh', minHeight: '70vh' }}
           >
           <img
             src={activeUrl}
@@ -683,7 +687,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           fontStyle: data.italic ? 'italic' : 'normal',
           textAlign: data.align,
           textTransform: data.uppercase ? 'uppercase' : 'none',
-          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.7)}px, ${data.fontSize}px)`,
+          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
@@ -713,7 +717,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
     textAlign: data.align,
     textTransform: data.uppercase ? 'uppercase' : 'none',
     textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
-    fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.7)}px, ${data.fontSize}px)`,
+    fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
     color: data.color,
     WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
   };
