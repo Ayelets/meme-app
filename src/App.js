@@ -25,14 +25,14 @@ const isLightColor = (hex) => relLuma(hex) > 0.5;
 
 const DEFAULT_TEMPLATES = [
   // Starter templates (first item replaced per your request)
-  "/images/1.png",
-  "/images/2.png",
-  "/images/3.png",
-  "/images/4.png",
-  "/images/5.png",
-  "/images/6.png",
-  "/images/7.png",
-  "/images/8.png",
+  "${BASE}/images/1.png",
+  "${BASE}/images/2.png",
+  "${BASE}/images/3.png",
+  "${BASE}/images/4.png",
+  "${BASE}/images/5.png",
+  "${BASE}/images/6.png",
+  "${BASE}/images/7.png",
+  "${BASE}/images/8.png",
 ];
 
 const FONTS = [
