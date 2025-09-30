@@ -470,7 +470,7 @@ useEffect(() => {
     }
     const ratio = img ? (img.naturalHeight / img.naturalWidth) : (3 / 4);
     const w = el.clientWidth || el.offsetWidth || 0;
-    const h = Math.min(Math.round(w * ratio * 1.30), Math.round(window.innerHeight * 0.8));
+    const h = Math.min(Math.round(w * ratio), Math.round(window.innerHeight * 0.80));
     el.style.height = `${h}px`;
   };
 
