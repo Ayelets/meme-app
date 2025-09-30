@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 // small color utils for textarea contrast
 const hexToRgb = (hex) => {
-  if (!hex) return [255,255,255];
+  if (!hex) return [0,0,0];
   const h = hex.replace('#','');
   const v = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
   const int = parseInt(v, 16);
