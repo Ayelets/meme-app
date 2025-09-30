@@ -3,11 +3,25 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 // small color utils for textarea contrast
 const hexToRgb = (hex) => {
   if (!hex) return [0,0,0];
-  const h = hex.replace('#','');
+  const s = String(hex).trim().toLowerCase();
+
+  // שמות/פורמטים לא-הקס: black / rgb(...) / rgba(...)
+  if (s === 'black') return [0,0,0];
+  if (s.startsWith('rgb')) {
+    const nums = s.match(/\d+/g);
+    if (nums && nums.length >= 3) {
+      return [parseInt(nums[0],10), parseInt(nums[1],10), parseInt(nums[2],10)];
+    }
+  }
+
+  // hex: #fff או #ffffff
+  const h = s.replace('#','');
   const v = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
   const int = parseInt(v, 16);
+  if (Number.isNaN(int)) return [0,0,0];
   return [(int>>16)&255, (int>>8)&255, int&255];
 };
+
 const relLuma = (hex) => {
   const [r,g,b] = hexToRgb(hex).map(v=>{ v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); });
   return 0.2126*r+0.7152*g+0.0722*b;
@@ -49,6 +63,27 @@ const stripBidi = (s = "") => s.replace(/[‎‏‪-‮⁦-⁩؜]/g, "");
 // Detect true RTL scripts (Hebrew/Arabic blocks)
 // RTL = Hebrew/Arabic בלבד (ללא טווחים אחרים)
 const isRTL = (s = "") => /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(stripBidi(s));
+// --- iOS detection + black-ish + outline fallback ---
+const IS_IOS =
+  typeof navigator !== "undefined" &&
+  /iP(hone|ad|od)|Macintosh/.test(navigator.userAgent) &&
+  "ontouchend" in (typeof document !== "undefined" ? document : {});
+
+const isBlackish = (color) => {
+  const [r,g,b] = hexToRgb(color);
+  return r < 8 && g < 8 && b < 8; // ~#000..#070
+};
+
+const outlineShadow = (color, w) => {
+  const s = Math.max(1, Math.round(w));
+  return [
+    `${s}px 0 0 ${color}`, `-${s}px 0 0 ${color}`,
+    `0 ${s}px 0 ${color}`, `0 -${s}px 0 ${color}`,
+    `${s}px ${s}px 0 ${color}`, `${s}px -${s}px 0 ${color}`,
+    `-${s}px ${s}px 0 ${color}`, `-${s}px -${s}px 0 ${color}`,
+  ].join(', ');
+};
+
 
 
 function useImage(url) {
@@ -666,6 +701,8 @@ function Toggle({ label, active, onClick }) {
 
 function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, editingId, setEditingId }) {
   const isEditing = editingId === data.id;
+  const useStrokeFallback = IS_IOS && isBlackish(data.color) && data.strokeWidth > 0;
+
 
   if (isEditing) {
     // Render a positioned <textarea> while editing for reliable caret behavior
@@ -693,8 +730,10 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           letterSpacing: 0,
           color: data.color,
           WebkitTextFillColor: data.color,
-          WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
-          textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
+          WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
+          textShadow: useStrokeFallback
+          ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
+          : (data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none'),
           background: isLightColor(data.color) ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
           backdropFilter: 'blur(2px)',
           caretColor: isLightColor(data.color) ? '#111' : '#fff',
@@ -718,11 +757,13 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
     fontStyle: data.italic ? 'italic' : 'normal',
     textAlign: data.align,
     textTransform: data.uppercase ? 'uppercase' : 'none',
-    textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
+    textShadow: useStrokeFallback
+    ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
+    : (data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none'),
     fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
     color: data.color,
     WebkitTextFillColor: data.color,
-    WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
+    WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
   };
 
   return (
