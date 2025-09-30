@@ -483,7 +483,7 @@ useEffect(() => {
 
 
   return (
-    <div className="min-h-screen flex flex-col overflow-y-auto bg-zinc-50 text-zinc-900">
+      <div className="min-h-screen flex flex-col overflow-visible bg-zinc-50 text-zinc-900">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="w-full px-4 py-3 flex items-center gap-3">
           <span className="text-2xl font-bold">Meme Eshelerator</span>
@@ -495,7 +495,7 @@ useEffect(() => {
       </header>
 
       <main
-        className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-y-auto lg:overflow-hidden"
+        className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-visible lg:overflow-hidden"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
 
@@ -539,7 +539,7 @@ useEffect(() => {
           <img
             src={activeUrl}
             alt="active"
-            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none max-h-[95vh]"
+            className="absolute inset-0 h-full w-full object-contain object-top select-none pointer-events-none"
           />
 
             {boxes.map((b) => (
@@ -724,7 +724,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
 
   return (
     <div
-      className={`absolute px-2 py-1 select-none cursor-grab active:cursor-grabbing ${isActive? 'ring-2 ring-blue-500 rounded-xl':'ring-0'}`}
+      className={`absolute px-2 py-1 select-none cursor-grab active:cursor-grabbing touch-pan-y ${isActive? 'ring-2 ring-blue-500 rounded-xl':'ring-0'}`}
       style={style}
       onPointerDown={(e)=> onPointerDown(e, data.id)}
       onDoubleClick={() => setEditingId(data.id)}
