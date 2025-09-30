@@ -533,13 +533,14 @@ useEffect(() => {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
-            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y"
-            style={{ aspectRatio: aspect, maxHeight: '80vh', minHeight: '70vh' }}
+            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y  mx-auto"
+            style={{ aspectRatio: aspect}}
           >
           <img
             src={activeUrl}
             alt="active"
-            className="absolute inset-0 h-full w-full object-contain object-top select-none pointer-events-none"
+            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
+            style={{ objectPosition: 'center top' }}
           />
 
             {boxes.map((b) => (
