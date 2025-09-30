@@ -470,7 +470,7 @@ useEffect(() => {
     }
     const ratio = img ? (img.naturalHeight / img.naturalWidth) : (3 / 4);
     const w = el.clientWidth || el.offsetWidth || 0;
-    const h = Math.min(Math.round(w * ratio), Math.round(window.innerHeight * 0.72));
+    const h = Math.min(Math.round(w * ratio * 1.30), Math.round(window.innerHeight * 0.90));
     el.style.height = `${h}px`;
   };
 
@@ -530,12 +530,12 @@ useEffect(() => {
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
             className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-none"
-            style={{ aspectRatio: aspect, maxHeight: '90vh', minHeight: '70vh' }}
+            style={{ aspectRatio: aspect, maxHeight: '95vh', minHeight: '75vh' }}
           >
           <img
             src={activeUrl}
             alt="active"
-            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none max-h-[85vh]"
+            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none max-h-[95vh]"
           />
 
             {boxes.map((b) => (
@@ -683,7 +683,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           fontStyle: data.italic ? 'italic' : 'normal',
           textAlign: data.align,
           textTransform: data.uppercase ? 'uppercase' : 'none',
-          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.8)}px, ${data.fontSize}px)`,
+          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.7)}px, ${data.fontSize}px)`,
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
@@ -713,7 +713,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
     textAlign: data.align,
     textTransform: data.uppercase ? 'uppercase' : 'none',
     textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
-    fontSize: `${data.fontSize}px`,
+    fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.7)}px, ${data.fontSize}px)`,
     color: data.color,
     WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
   };
