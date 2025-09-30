@@ -69,7 +69,7 @@ const defaultText = (id) => ({
   text: id === 1 ? "TOP TEXT" : "BOTTOM TEXT",
   x: 0.5, // relative position (0..1)
   y: id === 1 ? 0.08 : 0.92,
-  fontSize: 48,
+  fontSize: (typeof window !== 'undefined' && window.innerWidth <= 640) ? 36 : 48,
   color: "#ffffff",
   strokeColor: "#000000",
   strokeWidth: 2,
@@ -530,12 +530,12 @@ useEffect(() => {
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
             className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-none"
-            style={{ aspectRatio: aspect, maxHeight: '72vh' }}
+            style={{ aspectRatio: aspect, maxHeight: '90vh', minHeight: '70vh' }}
           >
           <img
             src={activeUrl}
             alt="active"
-            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
+            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none max-h-[85vh]"
           />
 
             {boxes.map((b) => (
@@ -683,7 +683,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           fontStyle: data.italic ? 'italic' : 'normal',
           textAlign: data.align,
           textTransform: data.uppercase ? 'uppercase' : 'none',
-          fontSize: `${data.fontSize}px`,
+          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.8)}px, ${data.fontSize}px)`,
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
@@ -695,7 +695,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           display: 'inline-block',
           width: 'fit-content',
           height: 'fit-content',
-          maxWidth: '90%',
+          maxWidth: '100%',
           overflow: 'hidden',
           whiteSpace: 'pre-wrap'
         }}
