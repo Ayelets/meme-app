@@ -454,6 +454,9 @@ const generateAndLink = () => {
     catch { alert('Export blocked. ייתכן ש-CORS או סביבת Sandbox חוסמים הורדה.'); }
   };
 
+  const aspect = img ? `${img.naturalWidth} / ${img.naturalHeight}` : '4 / 3';
+
+
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-zinc-50 text-zinc-900">
@@ -502,9 +505,14 @@ const generateAndLink = () => {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
-            className="relative flex-1 min-h-0 bg-zinc-100 rounded-xl overflow-hidden border"
+            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-none"
+            style={{ aspectRatio: aspect, maxHeight: '72vh' }}
           >
-            <img src={activeUrl} alt="active" className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"/>
+          <img
+            src={activeUrl}
+            alt="active"
+            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
+          />
 
             {boxes.map((b) => (
               <DraggableText
