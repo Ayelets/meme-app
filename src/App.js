@@ -701,7 +701,7 @@ function Toggle({ label, active, onClick }) {
 
 function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, editingId, setEditingId }) {
   const isEditing = editingId === data.id;
-  const useStrokeFallback = IS_IOS && isBlackish(data.color) && data.strokeWidth > 0;
+  const useStrokeFallback = true;
 
 
   if (isEditing) {
@@ -730,12 +730,14 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           letterSpacing: 0,
           color: data.color,
           WebkitTextFillColor: data.color,
-          WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
+          WebkitTextStroke: '0 transparent',
           textShadow: useStrokeFallback
           ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
           : (data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none'),
-          background: isLightColor(data.color) ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(2px)',
+          background: 'transparent',
+          backdropFilter: 'none',
+          mixBlendMode: 'normal',
+          filter: 'none',
           caretColor: isLightColor(data.color) ? '#111' : '#fff',
           display: 'inline-block',
           width: 'fit-content',
@@ -757,9 +759,8 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
     fontStyle: data.italic ? 'italic' : 'normal',
     textAlign: data.align,
     textTransform: data.uppercase ? 'uppercase' : 'none',
-    textShadow: useStrokeFallback
-    ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
-    : (data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none'),
+    textShadow: outlineShadow(data.strokeColor, data.strokeWidth)
+     + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : ''),
     fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
     color: data.color,
     WebkitTextFillColor: data.color,
