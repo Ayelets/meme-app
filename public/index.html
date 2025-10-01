@@ -15,6 +15,7 @@
     <meta property="og:description" content="מחולל ממים של הייטק" />
     <meta property="og:url" content="https://ayeletsapirshtein.com/meme-app/" />
     <meta property="og:image" content="https://ayeletsapirshtein.com/meme-app/logo512.png?v=5" />
+    <meta name="color-scheme" content="light">
 
    
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png?v=5" />
@@ -34,6 +35,14 @@
     -->
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Meme Eshelerator</title>
+    <style>
+      /* בקש מהדפדפן לא להפוך צבעים */
+      html { color-scheme: light !important; }
+      /* מקרה קצה: אם מנגנון ההיפוך מתעלם מהצהרת הצבע-סכימה */
+      @media (prefers-color-scheme: dark) {
+        html { color-scheme: light !important; }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
