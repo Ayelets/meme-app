@@ -701,7 +701,7 @@ function Toggle({ label, active, onClick }) {
 
 function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, editingId, setEditingId }) {
   const isEditing = editingId === data.id;
-  const useStrokeFallback = true;
+  const useStrokeFallback = false;
 
 
   if (isEditing) {
@@ -729,7 +729,6 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
-          WebkitTextFillColor: 'unset',
           WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
           textShadow: useStrokeFallback
           ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
