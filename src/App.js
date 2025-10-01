@@ -729,8 +729,8 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
-          WebkitTextFillColor: data.color,
-          WebkitTextStroke: '0 transparent',
+          WebkitTextFillColor: 'unset',
+          WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
           textShadow: useStrokeFallback
           ? outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : '')
           : (data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none'),
@@ -763,8 +763,7 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
      + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : ''),
     fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
     color: data.color,
-    WebkitTextFillColor: data.color,
-    WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
+    WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
   };
 
   return (
