@@ -533,14 +533,6 @@ useEffect(() => {
   return () => window.removeEventListener('resize', setHeight);
 }, [img]);
 
-// חישוב גובה מקסימלי דינמי לפי יחס התמונה
-const containerW = containerRef.current?.clientWidth ?? window.innerWidth;
-const imgRatio = img ? img.naturalHeight / img.naturalWidth : 3/4;
-const desiredH = containerW * imgRatio;
-// נגביל שלא יחרוג מהמסך (90% גובה)
-const maxH = Math.min(desiredH, window.innerHeight * 0.9);
-
-
 
   return (
       <div className="min-h-screen flex flex-col overflow-visible bg-zinc-50 text-zinc-900">
@@ -595,13 +587,14 @@ const maxH = Math.min(desiredH, window.innerHeight * 0.9);
             onPointerLeave={onPointerUp}
             className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y  mx-auto"
             style={{
-              // כשיש גובה מחושב – נשתמש בו כדי לא לחרוג מהמסך;
-              // אחרת ניפול חזרה ל-aspectRatio
-              height: maxPreviewH ? `${maxPreviewH}px` : undefined,
-              maxHeight: maxPreviewH ? `${maxPreviewH}px` : undefined,
-              aspectRatio: maxPreviewH ? undefined : aspect,
-              width: '100%',
-            }}
+                    // אם יש לנו גובה פנוי מחושב – נשתמש בו (כדי שלא תהיה גלילה בתמונות לאורך)
+                    height: maxPreviewH ? `${maxPreviewH}px` : undefined,
+                    maxHeight: maxPreviewH ? `${maxPreviewH}px` : undefined,
+                    // אחרת (לפני שהוגדר maxPreviewH) ניפול ל-aspect-ratio כדי לקבל גובה תקין
+                    aspectRatio: maxPreviewH ? undefined : aspect,
+                    width: '100%',
+                  }}
+
           >
           <img
             src={activeUrl}
@@ -611,7 +604,7 @@ const maxH = Math.min(desiredH, window.innerHeight * 0.9);
               width: '100%',
               height: '100%',
               objectFit: 'contain',
-              objectPosition: 'center top',
+              objectPosition: 'center center',
             }}
           />
 
