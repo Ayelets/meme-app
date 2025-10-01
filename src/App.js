@@ -1,13 +1,28 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
+
 
 // small color utils for textarea contrast
 const hexToRgb = (hex) => {
-  if (!hex) return [255,255,255];
-  const h = hex.replace('#','');
+  if (!hex) return [0,0,0];
+  const s = String(hex).trim().toLowerCase();
+
+  // שמות/פורמטים לא-הקס: black / rgb(...) / rgba(...)
+  if (s === 'black') return [0,0,0];
+  if (s.startsWith('rgb')) {
+    const nums = s.match(/\d+/g);
+    if (nums && nums.length >= 3) {
+      return [parseInt(nums[0],10), parseInt(nums[1],10), parseInt(nums[2],10)];
+    }
+  }
+
+  // hex: #fff או #ffffff
+  const h = s.replace('#','');
   const v = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
   const int = parseInt(v, 16);
+  if (Number.isNaN(int)) return [0,0,0];
   return [(int>>16)&255, (int>>8)&255, int&255];
 };
+
 const relLuma = (hex) => {
   const [r,g,b] = hexToRgb(hex).map(v=>{ v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); });
   return 0.2126*r+0.7152*g+0.0722*b;
@@ -23,16 +38,16 @@ const isLightColor = (hex) => relLuma(hex) > 0.5;
 // - Download as PNG with proper high-DPI scaling
 // - No AI options :)
 
+const BASE = process.env.PUBLIC_URL || "";
 const DEFAULT_TEMPLATES = [
-  // Starter templates (first item replaced per your request)
-  "/images/1.png",
-  "/images/2.png",
-  "/images/3.png",
-  "/images/4.png",
-  "/images/5.png",
-  "/images/6.png",
-  "/images/7.png",
-  "/images/8.png",
+  `${BASE}/images/1.png`,
+  `${BASE}/images/2.png`,
+  `${BASE}/images/3.png`,
+  `${BASE}/images/4.png`,
+  `${BASE}/images/5.png`,
+  `${BASE}/images/6.png`,
+  `${BASE}/images/7.png`,
+  `${BASE}/images/8.png`,
 ];
 
 const FONTS = [
@@ -49,6 +64,27 @@ const stripBidi = (s = "") => s.replace(/[‎‏‪-‮⁦-⁩؜]/g, "");
 // Detect true RTL scripts (Hebrew/Arabic blocks)
 // RTL = Hebrew/Arabic בלבד (ללא טווחים אחרים)
 const isRTL = (s = "") => /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(stripBidi(s));
+// --- iOS detection + black-ish + outline fallback ---
+const IS_IOS =
+  typeof navigator !== "undefined" &&
+  /iP(hone|ad|od)|Macintosh/.test(navigator.userAgent) &&
+  "ontouchend" in (typeof document !== "undefined" ? document : {});
+
+const isBlackish = (color) => {
+  const [r,g,b] = hexToRgb(color);
+  return r < 8 && g < 8 && b < 8; // ~#000..#070
+};
+
+const outlineShadow = (color, w) => {
+  const s = Math.max(1, Math.round(w));
+  return [
+    `${s}px 0 0 ${color}`, `-${s}px 0 0 ${color}`,
+    `0 ${s}px 0 ${color}`, `0 -${s}px 0 ${color}`,
+    `${s}px ${s}px 0 ${color}`, `${s}px -${s}px 0 ${color}`,
+    `-${s}px ${s}px 0 ${color}`, `-${s}px -${s}px 0 ${color}`,
+  ].join(', ');
+};
+
 
 
 function useImage(url) {
@@ -69,7 +105,7 @@ const defaultText = (id) => ({
   text: id === 1 ? "TOP TEXT" : "BOTTOM TEXT",
   x: 0.5, // relative position (0..1)
   y: id === 1 ? 0.08 : 0.92,
-  fontSize: 48,
+  fontSize: (typeof window !== 'undefined' && window.innerWidth <= 640) ? 36 : 48,
   color: "#ffffff",
   strokeColor: "#000000",
   strokeWidth: 2,
@@ -117,7 +153,25 @@ export default function App() {
   }, [activeUrl, boxesByImage]);
 
   const containerRef = useRef(null);
-  const canvasRef = useRef(null);
+  // ---- Preview height that fits into the viewport (no scroll for portrait images)
+  const [maxPreviewH, setMaxPreviewH] = useState(0);
+
+  useLayoutEffect(() => {
+    const recompute = () => {
+      const top = containerRef.current?.getBoundingClientRect().top ?? 0;
+      const viewportH = (window.visualViewport?.height ?? window.innerHeight);
+      const available = Math.max(240, viewportH - top - 16); // מינימום 240px + מרווח קטן למטה
+      setMaxPreviewH(available);
+    };
+    recompute();
+    window.addEventListener('resize', recompute);
+    window.visualViewport?.addEventListener?.('resize', recompute);
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.visualViewport?.removeEventListener?.('resize', recompute);
+    };
+  }, []);
+    const canvasRef = useRef(null);
 
   // תצוגה ולינק שנוצר
  const [generated, setGenerated] = useState({ previewUrl: "", linkUrl: "" });
@@ -454,9 +508,42 @@ const generateAndLink = () => {
     catch { alert('Export blocked. ייתכן ש-CORS או סביבת Sandbox חוסמים הורדה.'); }
   };
 
+  const aspect = img ? `${img.naturalWidth} / ${img.naturalHeight}` : '4 / 3';
+  // Fallback למכשירים שלא תומכים ב-aspect-ratio: קובע גובה לפי רוחב המכל
+useEffect(() => {
+  const el = containerRef.current;
+  if (!el) return;
+
+  const supportsAspect = typeof CSS !== 'undefined' && CSS.supports?.('aspect-ratio: 1 / 1');
+
+  const setHeight = () => {
+    if (supportsAspect) {
+      // בדפדפנים חדשים לא צריך Fallback — ננקה אם הוגדר בעבר
+      el.style.height = '';
+      return;
+    }
+    const ratio = img ? (img.naturalHeight / img.naturalWidth) : (3 / 4);
+    const w = el.clientWidth || el.offsetWidth || 0;
+    const h = Math.min(Math.round(w * ratio), Math.round(window.innerHeight * 0.80));
+    el.style.height = `${h}px`;
+  };
+
+  setHeight();
+  window.addEventListener('resize', setHeight);
+  return () => window.removeEventListener('resize', setHeight);
+}, [img]);
+
+// חישוב גובה מקסימלי דינמי לפי יחס התמונה
+const containerW = containerRef.current?.clientWidth ?? window.innerWidth;
+const imgRatio = img ? img.naturalHeight / img.naturalWidth : 3/4;
+const desiredH = containerW * imgRatio;
+// נגביל שלא יחרוג מהמסך (90% גובה)
+const maxH = Math.min(desiredH, window.innerHeight * 0.9);
+
+
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-zinc-50 text-zinc-900">
+      <div className="min-h-screen flex flex-col overflow-visible bg-zinc-50 text-zinc-900">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="w-full px-4 py-3 flex items-center gap-3">
           <span className="text-2xl font-bold">Meme Eshelerator</span>
@@ -467,7 +554,11 @@ const generateAndLink = () => {
         </div>
       </header>
 
-      <main className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-hidden">
+      <main
+        className="max-w-none w-full px-4 md:px-6 py-4 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-stretch overflow-visible lg:overflow-hidden"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+
         {/* Editor */}
         <section className="bg-white rounded-2xl shadow p-4 flex flex-col min-h-0">
           {/* Image roller */}
@@ -502,9 +593,27 @@ const generateAndLink = () => {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
-            className="relative flex-1 min-h-0 bg-zinc-100 rounded-xl overflow-hidden border"
+            className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y  mx-auto"
+            style={{
+              // כשיש גובה מחושב – נשתמש בו כדי לא לחרוג מהמסך;
+              // אחרת ניפול חזרה ל-aspectRatio
+              height: maxPreviewH ? `${maxPreviewH}px` : undefined,
+              maxHeight: maxPreviewH ? `${maxPreviewH}px` : undefined,
+              aspectRatio: maxPreviewH ? undefined : aspect,
+              width: '100%',
+            }}
           >
-            <img src={activeUrl} alt="active" className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"/>
+          <img
+            src={activeUrl}
+            alt="active"
+            className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center top',
+            }}
+          />
 
             {boxes.map((b) => (
               <DraggableText
@@ -629,6 +738,8 @@ function Toggle({ label, active, onClick }) {
 
 function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, editingId, setEditingId }) {
   const isEditing = editingId === data.id;
+  const useStrokeFallback = true;
+
 
   if (isEditing) {
     // Render a positioned <textarea> while editing for reliable caret behavior
@@ -651,19 +762,21 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
           fontStyle: data.italic ? 'italic' : 'normal',
           textAlign: data.align,
           textTransform: data.uppercase ? 'uppercase' : 'none',
-          fontSize: `${data.fontSize}px`,
+          fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
           lineHeight: 1.2,
           letterSpacing: 0,
           color: data.color,
-          WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
-          textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
-          background: isLightColor(data.color) ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(2px)',
+          WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
+          textShadow: outlineShadow(data.strokeColor, data.strokeWidth) + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : ''),
+          background: 'transparent',
+          backdropFilter: 'none',
+          mixBlendMode: 'normal',
+          filter: 'none',
           caretColor: isLightColor(data.color) ? '#111' : '#fff',
           display: 'inline-block',
           width: 'fit-content',
           height: 'fit-content',
-          maxWidth: '90%',
+          maxWidth: '100%',
           overflow: 'hidden',
           whiteSpace: 'pre-wrap'
         }}
@@ -680,15 +793,16 @@ function DraggableText({ data, isActive, containerRef, onPointerDown, onChange, 
     fontStyle: data.italic ? 'italic' : 'normal',
     textAlign: data.align,
     textTransform: data.uppercase ? 'uppercase' : 'none',
-    textShadow: data.shadow ? '0 2px 8px rgba(0,0,0,.4)' : 'none',
-    fontSize: `${data.fontSize}px`,
+    textShadow: outlineShadow(data.strokeColor, data.strokeWidth)
+     + (data.shadow ? ', 0 2px 8px rgba(0,0,0,.4)' : ''),
+    fontSize: `clamp(12px, ${Math.round(data.fontSize * 0.5)}px, ${data.fontSize}px)`,
     color: data.color,
-    WebkitTextStroke: `${data.strokeWidth}px ${data.strokeColor}`,
+    WebkitTextStroke: useStrokeFallback ? '0 transparent' : `${data.strokeWidth}px ${data.strokeColor}`,
   };
 
   return (
     <div
-      className={`absolute px-2 py-1 select-none cursor-grab active:cursor-grabbing ${isActive? 'ring-2 ring-blue-500 rounded-xl':'ring-0'}`}
+      className={`absolute px-2 py-1 select-none cursor-grab active:cursor-grabbing touch-pan-y ${isActive? 'ring-2 ring-blue-500 rounded-xl':'ring-0'}`}
       style={style}
       onPointerDown={(e)=> onPointerDown(e, data.id)}
       onDoubleClick={() => setEditingId(data.id)}
