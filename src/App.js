@@ -152,7 +152,25 @@ export default function App() {
   }, [activeUrl, boxesByImage]);
 
   const containerRef = useRef(null);
-  const canvasRef = useRef(null);
+  // ---- Preview height that fits into the viewport (no scroll for portrait images)
+  const [maxPreviewH, setMaxPreviewH] = useState(0);
+
+  useLayoutEffect(() => {
+    const recompute = () => {
+      const top = containerRef.current?.getBoundingClientRect().top ?? 0;
+      const viewportH = (window.visualViewport?.height ?? window.innerHeight);
+      const available = Math.max(240, viewportH - top - 16); // מינימום 240px + מרווח קטן למטה
+      setMaxPreviewH(available);
+    };
+    recompute();
+    window.addEventListener('resize', recompute);
+    window.visualViewport?.addEventListener?.('resize', recompute);
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.visualViewport?.removeEventListener?.('resize', recompute);
+    };
+  }, []);
+    const canvasRef = useRef(null);
 
   // תצוגה ולינק שנוצר
  const [generated, setGenerated] = useState({ previewUrl: "", linkUrl: "" });
@@ -514,6 +532,12 @@ useEffect(() => {
   return () => window.removeEventListener('resize', setHeight);
 }, [img]);
 
+// חישוב גובה מקסימלי דינמי לפי יחס התמונה
+const containerW = containerRef.current?.clientWidth ?? window.innerWidth;
+const imgRatio = img ? img.naturalHeight / img.naturalWidth : 3/4;
+const desiredH = containerW * imgRatio;
+// נגביל שלא יחרוג מהמסך (90% גובה)
+const maxH = Math.min(desiredH, window.innerHeight * 0.9);
 
 
 
@@ -569,13 +593,25 @@ useEffect(() => {
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
             className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border touch-pan-y  mx-auto"
-            style={{ aspectRatio: aspect, maxHeight: 'min(85vh, 85dvh)', width: '90%'}}
+            style={{
+              // כשיש גובה מחושב – נשתמש בו כדי לא לחרוג מהמסך;
+              // אחרת ניפול חזרה ל-aspectRatio
+              height: previewH ? `${previewH}px` : undefined,
+              maxHeight: maxPreviewH ? `${maxPreviewH}px` : undefined,
+              aspectRatio: previewH ? undefined : aspect,
+              width: '100%',
+            }}
           >
           <img
             src={activeUrl}
             alt="active"
             className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
-            style={{ objectPosition: 'center top', maxHeight: '85dvh',maxWidth: '90%'}}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center top',
+            }}
           />
 
             {boxes.map((b) => (
