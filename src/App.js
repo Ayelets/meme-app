@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
+
 
 // small color utils for textarea contrast
 const hexToRgb = (hex) => {
@@ -596,9 +597,9 @@ const maxH = Math.min(desiredH, window.innerHeight * 0.9);
             style={{
               // כשיש גובה מחושב – נשתמש בו כדי לא לחרוג מהמסך;
               // אחרת ניפול חזרה ל-aspectRatio
-              height: previewH ? `${previewH}px` : undefined,
+              height: maxPreviewH ? `${maxPreviewH}px` : undefined,
               maxHeight: maxPreviewH ? `${maxPreviewH}px` : undefined,
-              aspectRatio: previewH ? undefined : aspect,
+              aspectRatio: maxPreviewH ? undefined : aspect,
               width: '100%',
             }}
           >
