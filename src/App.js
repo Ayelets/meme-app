@@ -575,7 +575,17 @@ useEffect(() => {
             src={activeUrl}
             alt="active"
             className="absolute inset-0 h-full w-full object-contain select-none pointer-events-none"
-            style={{ objectPosition: 'center top' }}
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+              objectPosition: 'center center'
+            }}
           />
 
             {boxes.map((b) => (
